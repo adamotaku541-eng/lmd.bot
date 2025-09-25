@@ -1,6 +1,5 @@
 import logging
 import threading
-import asyncio
 import os
 from flask import Flask
 from telegram import Update
@@ -78,31 +77,20 @@ def run_flask():
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
 
-# حذف Webhook السابق لتجنب التعارض
-async def remove_webhook(application):
+# حذف Webhook بعد بدء التطبيق
+async def on_startup(application):
     await application.bot.delete_webhook()
 
 # تشغيل البوت
 def main():
     print("✅ البوت قيد التشغيل...")
 
-    # التحقق من وجود التوكن
     if not TOKEN:
         raise ValueError("❌ لم يتم العثور على التوكن في متغير البيئة BOT_TOKEN")
 
     threading.Thread(target=run_flask).start()
 
-    application = Application.builder().token(TOKEN).build()
-
-    asyncio.run(remove_webhook(application))  # حذف أي Webhook سابق
+    application = Application.builder().token(TOKEN).post_init(on_startup).build()
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("text", text_mode_command))
-    application.add_handler(CommandHandler("unicode", unicode_mode_command))
-    application.add_handler(CommandHandler("stop", stop_command))
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
-    application.run_polling()
-
-if __name__ == '__main__':
-    main()
