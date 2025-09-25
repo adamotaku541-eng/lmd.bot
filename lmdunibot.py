@@ -94,3 +94,11 @@ def main():
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("text", text_mode_command))
+    application.add_handler(CommandHandler("unicode", unicode_mode_command))
+    application.add_handler(CommandHandler("stop", stop_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()
