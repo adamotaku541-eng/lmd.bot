@@ -86,6 +86,10 @@ async def remove_webhook(application):
 def main():
     print("✅ البوت قيد التشغيل...")
 
+    # التحقق من وجود التوكن
+    if not TOKEN:
+        raise ValueError("❌ لم يتم العثور على التوكن في متغير البيئة BOT_TOKEN")
+
     threading.Thread(target=run_flask).start()
 
     application = Application.builder().token(TOKEN).build()
