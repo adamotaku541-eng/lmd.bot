@@ -1,21 +1,22 @@
 import logging
+import threading
+from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
-# --- إعدادات البوت ---
+# إعدادات البوت
 TOKEN = "8147477964:AAEuL6BP35OH-AJYFy0C5tZ03_bBVygKF-I"
 
-# إعداد تسجيل الأخطاء والمعلومات
+# إعداد السجل
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# --- تخزين حالة المستخدم ---
-user_modes = {}  # مفتاحه هو user_id وقيمته إما "text" أو "unicode" أو None
+# تخزين حالة المستخدم
+user_modes = {}
 
-# --- دوال التحويل ---
-
+# دوال التحويل
 def text_to_unicode(text: str) -> str:
     return '-'.join(f'U+{ord(char):04X}' for char in text)
 
@@ -27,8 +28,7 @@ def unicode_to_text(unicode_string: str) -> str:
     except (ValueError, IndexError):
         return "⚠️ صيغة اليونيكود غير صالحة. تأكد أنها مكتوبة بالشكل الصحيح."
 
-# --- أوامر البوت ---
-
+# أوامر البوت
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_modes[update.effective_user.id] = None
     await update.message.reply_text("""
@@ -51,8 +51,7 @@ async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_modes[update.effective_user.id] = None
     await update.message.reply_text("🛑 تم إيقاف الوضع النشط. أرسل أمرًا جديدًا للبدء.")
 
-# --- التعامل مع الرسائل العادية ---
-
+# التعامل مع الرسائل العادية
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     mode = user_modes.get(user_id)
@@ -66,9 +65,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await update.message.reply_text("❓ لم يتم تفعيل أي وضع. أرسل /text أو /unicode للبدء.")
 
-# --- تشغيل البوت ---
+# Flask لإبقاء المنفذ مفتوحًا
+app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return "✅ البوت يعمل باستخدام polling"
+
+def run_flask():
+    import os
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
+# تشغيل البوت
 def main():
     print("✅ البوت قيد التشغيل...")
+
+    threading.Thread(target=run_flask).start()
 
     application = Application.builder().token(TOKEN).build()
 
