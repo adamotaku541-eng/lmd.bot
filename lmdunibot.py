@@ -5,7 +5,7 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
 # إعدادات البوت
-TOKEN = "8147477964:AAEuL6BP35OH-AJYFy0C5tZ03_bBVygKF-I"
+TOKEN = "8147477964:AAEFC9Ut05ZhaNUxPaxdNNQDEMM8jqYmGWc"
 
 # إعداد السجل
 logging.basicConfig(
