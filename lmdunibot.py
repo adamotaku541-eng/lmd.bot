@@ -1,11 +1,13 @@
 import logging
 import threading
+import asyncio
+import os
 from flask import Flask
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, ContextTypes, filters
 
-# إعدادات البوت
-TOKEN = "8147477964:AAEFC9Ut05ZhaNUxPaxdNNQDEMM8jqYmGWc"
+# قراءة التوكن من متغير البيئة
+TOKEN = os.environ.get("BOT_TOKEN")
 
 # إعداد السجل
 logging.basicConfig(
@@ -73,9 +75,12 @@ def index():
     return "✅ البوت يعمل باستخدام polling"
 
 def run_flask():
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+# حذف Webhook السابق لتجنب التعارض
+async def remove_webhook(application):
+    await application.bot.delete_webhook()
 
 # تشغيل البوت
 def main():
@@ -84,6 +89,8 @@ def main():
     threading.Thread(target=run_flask).start()
 
     application = Application.builder().token(TOKEN).build()
+
+    asyncio.run(remove_webhook(application))  # حذف أي Webhook سابق
 
     application.add_handler(CommandHandler("start", start_command))
     application.add_handler(CommandHandler("text", text_mode_command))
